@@ -23,32 +23,39 @@ help()
 
 path_check()
 {
-	if !( echo $PATH | grep "$1" > 0); then
+	if [ -f $1 ]; then
+		echo 'File exist'
+	else
 		echo 'Error: file does not exist' >&2
 		exit 1
 	fi
 }
 
+LOGFILE=""
+ERRORFILE=""
+
 log()
 {
-	path_check "$1"
-	exec 1> "$1"
+	LOGFILE="$1"
+	path_check "$LOGFILE"
+	exec 1> "$LOGFILE"
 }
 
 errors()
 {
-	path_check "$1"
-	exec 2> "$1" 
+	ERRORFILE="$1"
+	path_check "$ERRORFILE"
+	exec 2> "$ERRORFILE" 
 }
 
-ARGS=$(getopt -o "upl:e:h" -l "users,processes,log:,errors:,help" -n "$0" -- "$@")
+ARGS=$(getopt -o "upl:e:h" --long "users,processes,log:,errors:,help" -n "$0" -- "$@")
 
 if [ $? != "0" ]; then
 	echo 'Error: Incorrect input' >&2
 	exit 1
 fi
 
-eval set - "$ARGS"
+eval set -- "$ARGS"
 
 while true; do
 	case "$1" in
@@ -68,9 +75,9 @@ while true; do
 			errors "$2"
 			shift 2;;
 		--)
-			shift
+			shift;
 			break;;
 		*) echo "Error: Unknown parametr $1" >&2
-		exit 1
+		exit 1;;
 	esac
 done
